@@ -39,7 +39,11 @@ function islandora_find_replace_find_form($form, &$form_state) {
     '#options' => $cmodel_options,
     '#required' => TRUE,
   );
-
+  $form['find']['namespace'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Namespace'),
+    '#description' => t('A single namespace to search for the string.'),
+  );
   $collections = islandora_basic_collection_get_collections();
   $collection_options = array();
   $collection_options[] = t('- Select -');
@@ -133,7 +137,7 @@ function islandora_find_replace_find_form($form, &$form_state) {
   $form['search'] = array(
     '#type' => 'textarea',
     '#title' => t('Search text'),
-    '#description' => t('The text to search for in the datastream.'),
+    '#description' => t('The text to search for in the datastream. Special characters must be escaped.'),
     '#rows' => 1,
     '#states' => array(
       'required' => array(
@@ -148,7 +152,8 @@ function islandora_find_replace_find_form($form, &$form_state) {
   $form['replace'] = array(
     '#type' => 'textarea',
     '#title' => t('Replacement text'),
-    '#description' => t('The text to replace the search with. Use (empty) to replace the search text with nothing.'),
+    '#description' => t('The text to replace the search with. Special characters must be escaped. 
+      Use (empty) to replace the search text with nothing.'),
     '#rows' => 1,
     '#states' => array(
       'required' => array(
@@ -222,6 +227,7 @@ function islandora_find_replace_find_form_validate($form, &$form_state) {
  */
 function islandora_find_replace_find_form_submit($form, &$form_state) {
   $candidates = islandora_find_replace_query($form_state['values']['content_model'],
+    $form_state['values']['namespace'],
     $form_state['values']['collection'],
     $form_state['values']['date_property'],
     $form_state['values']['date_from'],
@@ -234,6 +240,7 @@ function islandora_find_replace_find_form_submit($form, &$form_state) {
   $replacewith = !$isregex ? $form_state['values']['replace'] : $form_state['values']['preg_replacement'];
   $find_replace = array(
     'cmodel' => $form_state['values']['content_model'],
+    'namespace' => trim($form_state['values']['namespace']),
     'dsid' => $form_state['values']['dsid'],
     'find' => $searchfor,
     'replacement' => $replacewith,

@@ -141,14 +141,9 @@ function get_id_from_path() {
  *
  * @param string $id
  * the id of the current log
- * @param string $field
- * field from database, either revisions or dsid
  */
-function get_log_field($id, $field) {
-  if($field != 'revisions' && $field != 'dsid') {
-    throw new Exception("$field is not legal");
-  }
-  $query = db_query("SELECT $field FROM {islandora_find_replace} WHERE id=:logid", array(':logid' => $id));
+function get_log_field($id) {
+  $query = db_query("SELECT * FROM {islandora_find_replace} WHERE id=:logid", array(':logid' => $id));
   return $query;
 }
 
@@ -158,15 +153,16 @@ function get_log_field($id, $field) {
  * @param object $query
  * database object of revisions from batch log
  *
- * @return array $changed
- * array of pids sucessfully changed by batch replace
+ * @return array $log
+ * results of the log as an array with 'revisions' unserialized
  */
-function get_changed_pids_or_revert_version($query, $revert = FALSE) {
-  $result = $query->fetchField();
-  $chunks = unserialize($result);
+function get_log_as_array($query) {
+  $results = (array) $query->fetchAll();
+  $log = (array) $results[0];
+  $chunks = unserialize($log['revisions']);
   if (isset($chunks)) {
-    $changed_or_revert = $revert ? $chunks['success'] : array_keys($chunks['success']);
-    return $changed_or_revert;
+    $log['revisions'] = $chunks['success'];
+    return $log;
   }
 }
 
@@ -176,18 +172,14 @@ function get_changed_pids_or_revert_version($query, $revert = FALSE) {
  */
 function revert_find_replace() {
   $id = get_id_from_path();
-  $query = get_log_field($id,'revisions');
-  $csv = get_changed_pids_or_revert_version($query);
-  $dsid = get_log_field($id, 'dsid');
-  $query_a = get_log_field($id,'revisions');
-  $before_version = get_changed_pids_or_revert_version($query_a, TRUE);
-  $dsid = $dsid->fetchField();
+  $query = get_log_field($id);
+  $log = get_log_as_array($query);
   $operations = array();
-  foreach ($csv as $pid) {
+  foreach ($log['revisions'] as $pid => $change) {
     $operations[] = array(
       'islandora_revert_datastream',
       array(
-        $pid, $dsid, $before_version[$pid]['before'],
+        $pid, $log['dsid'], $change['before'],
       ),
     );
   }

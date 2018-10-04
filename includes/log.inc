@@ -122,25 +122,25 @@ function islandora_find_replace_get_version_id($history, $location) {
 }
 
 /**
- * gets the log id form uri
+ * Gets the log id form uri.
  *
- * @return string $id
- * Id of current page log
+ * @return string
+ *   Id of current page log.
  */
 function get_id_from_path() {
   $path = explode('/', current_path());
   $id = '';
-  if (gettype((int)$path['5']) == 'integer') {
+  if (gettype((int) $path['5']) == 'integer') {
     $id = $path['5'];
   }
   return $id;
 }
 
 /**
- * get record of current log from database
+ * Get record of current log from database.
  *
  * @param string $id
- * the id of the current log
+ *   The id of the current log.
  */
 function get_log_field($id) {
   $query = db_query("SELECT * FROM {islandora_find_replace} WHERE id=:logid", array(':logid' => $id));
@@ -148,13 +148,13 @@ function get_log_field($id) {
 }
 
 /**
- * helper to unserialize revised pid log from database query
+ * Helper to unserialize revised pid log from database query.
  *
  * @param object $query
- * database object of revisions from batch log
+ *   Database object of revisions from batch log.
  *
- * @return array $log
- * results of the log as an array with 'revisions' unserialized
+ * @return array
+ *   Results of the log as an array with 'revisions' unserialized.
  */
 function get_log_as_array($query) {
   $results = (array) $query->fetchAll();
@@ -166,9 +166,8 @@ function get_log_as_array($query) {
   }
 }
 
-
 /**
- * revert changes made by batch log.
+ * Revert changes made by batch log.
  */
 function revert_find_replace() {
   $id = get_id_from_path();
@@ -187,7 +186,7 @@ function revert_find_replace() {
 }
 
 /**
- * implements hook_form.
+ * Implements hook_form().
  */
 function revert_form($form, &$form_state) {
   $form['revert'] = array(
@@ -198,7 +197,7 @@ function revert_form($form, &$form_state) {
 }
 
 /**
- * implements hook_form_submit.
+ * Implements hook_form_submit().
  */
 function revert_form_submit($form, &$form_state) {
   $batch = array(

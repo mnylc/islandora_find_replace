@@ -89,12 +89,14 @@ function islandora_find_replace_replace_form_submit($form, &$form_state) {
 
   $operations = array();
   foreach ($selected as $select) {
-    $operations[] = array('islandora_find_replace_update_objects', array(
-      $select,
-      $form_state['storage']['find_replace']['dsid'],
-      $form_state['storage']['find_replace']['find'],
-      $form_state['storage']['find_replace']['replacement'],
-      $form_state['storage']['find_replace']['id']),
+    $operations[] = array('islandora_find_replace_update_objects',
+      array(
+        $select,
+        $form_state['storage']['find_replace']['dsid'],
+        $form_state['storage']['find_replace']['find'],
+        $form_state['storage']['find_replace']['replacement'],
+        $form_state['storage']['find_replace']['id'],
+      ),
     );
   }
   $batch = array(

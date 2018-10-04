@@ -68,12 +68,14 @@ function islandora_find_replace_replace_form($form, &$form_state, $find_replace)
     '#type' => 'checkbox',
     '#title' => t("If selecting all checkboxes in the table below results in a warning, use this checkbox as an alternate means to 'select all'."),
   );
+
   if (count($options)) {
     $form['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Replace String'),
     );
   }
+
   $form['preview'] = array(
     '#type' => 'tableselect',
     '#header' => $header,

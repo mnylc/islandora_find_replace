@@ -227,11 +227,11 @@ function islandora_find_replace_find_form_validate($form, &$form_state) {
  */
 function islandora_find_replace_find_form_submit($form, &$form_state) {
   $candidates = islandora_find_replace_query($form_state['values']['content_model'],
-    $form_state['values']['namespace'],
     $form_state['values']['collection'],
     $form_state['values']['date_property'],
     $form_state['values']['date_from'],
     $form_state['values']['date_to']
+    $form_state['values']['namespace'],
   );
   
   

@@ -364,3 +364,46 @@ function islandora_find_replace_preview($find_replace, $object) {
     drupal_set_message(t('Islandora Pretty Text Diff is required'), 'warning');
   }
 }
+
+/**
+ * Peform reset datastream back one version.
+ *
+ * @param string $pid
+ *   The object pid.
+ * @param string $dsid
+ *   The datastream string.
+ * @param string $revert_version
+ *   Version of the datastream to revert to.
+ * @param string $context
+ *   The target string for the operation.
+ * @param array $context
+ *   Batch context.
+ */
+function islandora_revert_datastream($pid, $dsid, $revert_version, &$context) {
+  $key = datastream_history_match($pid, $dsid, $revert_version);
+  $obj = islandora_object_load($pid);
+  $string = $obj[$dsid][$key]->content;
+  $ds = $obj[$dsid];
+  $ds->setContentFromString($string);
+}
+
+/**
+ * Matches batch record's "before" datastream version.
+ *
+ * @param string $pid
+ *   Object pid.
+ * @param string $dsid
+ *   Datastream identifier.
+ * @param string $revert_version
+ *   Pulled from the batch record, matches the datastream that existed
+ *   before the batch operation was performed.
+ */
+function datastream_history_match($pid, $dsid, $revert_version) {
+  $connection = islandora_get_tuque_connection();
+  $history = $connection->api->m->getDatastreamHistory($pid, $dsid);
+  foreach ($history as $key => $info) {
+    if ($info['dsLocation'] == $revert_version) {
+      return $key;
+    }
+  }
+}

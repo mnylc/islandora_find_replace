@@ -204,9 +204,10 @@ function revert_form_submit($form, &$form_state) {
     'operations' => revert_find_replace(),
     'title' => t('Revert each object'),
     'init_message' => t('Beginning revert.'),
-    'finished' => 'revert_finished',
+    'finished' => t('Revert finished'),
     'progress_message' => t('Processed @current out of @total.'),
   );
   batch_set($batch);
   $form_state['redirect'] = 'admin/islandora/tools/find-replace/find';
+  drupal_set_message(t('Revert complete'));
 }

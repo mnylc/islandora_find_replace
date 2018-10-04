@@ -90,6 +90,7 @@ function islandora_find_replace_operation_log($find_replace) {
           array('header' => $success_header, 'rows' => $success_rows)),
     ),
   );
+  $output['revert'] = drupal_get_form('revert_form');
   if (!empty($fail_output)) {
     $output['fail'] = array(
       '#type' => 'markup',
@@ -118,4 +119,95 @@ function islandora_find_replace_get_version_id($history, $location) {
     }
   }
   return NULL;
+}
+
+/**
+ * Gets the log id form uri.
+ *
+ * @return string
+ *   Id of current page log.
+ */
+function get_id_from_path() {
+  $path = explode('/', current_path());
+  $id = '';
+  if (gettype((int) $path['5']) == 'integer') {
+    $id = $path['5'];
+  }
+  return $id;
+}
+
+/**
+ * Get record of current log from database.
+ *
+ * @param string $id
+ *   The id of the current log.
+ */
+function get_log_field($id) {
+  $query = db_query("SELECT * FROM {islandora_find_replace} WHERE id=:logid", array(':logid' => $id));
+  return $query;
+}
+
+/**
+ * Helper to unserialize revised pid log from database query.
+ *
+ * @param object $query
+ *   Database object of revisions from batch log.
+ *
+ * @return array
+ *   Results of the log as an array with 'revisions' unserialized.
+ */
+function get_log_as_array($query) {
+  $results = (array) $query->fetchAll();
+  $log = (array) $results[0];
+  $chunks = unserialize($log['revisions']);
+  if (isset($chunks)) {
+    $log['revisions'] = $chunks['success'];
+    return $log;
+  }
+}
+
+/**
+ * Revert changes made by batch log.
+ */
+function revert_find_replace() {
+  $id = get_id_from_path();
+  $query = get_log_field($id);
+  $log = get_log_as_array($query);
+  $operations = array();
+  foreach ($log['revisions'] as $pid => $change) {
+    $operations[] = array(
+      'islandora_revert_datastream',
+      array(
+        $pid, $log['dsid'], $change['before'],
+      ),
+    );
+  }
+  return $operations;
+}
+
+/**
+ * Implements hook_form().
+ */
+function revert_form($form, &$form_state) {
+  $form['revert'] = array(
+    '#type' => 'submit',
+    '#value' => 'Revert this batch',
+  );
+  return $form;
+}
+
+/**
+ * Implements hook_form_submit().
+ */
+function revert_form_submit($form, &$form_state) {
+  $batch = array(
+    'operations' => revert_find_replace(),
+    'title' => t('Revert each object'),
+    'init_message' => t('Beginning revert.'),
+    'finished' => t('Revert finished'),
+    'progress_message' => t('Processed @current out of @total.'),
+  );
+  batch_set($batch);
+  $form_state['redirect'] = 'admin/islandora/tools/find-replace/find';
+  drupal_set_message(t('Revert complete'));
 }

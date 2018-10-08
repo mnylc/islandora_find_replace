@@ -11,7 +11,9 @@ function islandora_find_replace_drush_command() {
   $items = array();
   $items['islandora-find-replace-csv-from-log'] = array(
     'description' => dt('Saves a csv file of all pids in a given batch'),
-    'examples' => dt('drush islandora-find-replace-csv-from-log -u 1 --path=/tmp/csv.tmp --log_id=1'),
+    'examples' => array(
+      dt('drush islandora-find-replace-csv-from-log -u 1 --path=/tmp/csv.tmp --log_id=1'),
+    ),
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'drupal dependencies' => array(
       'islandora',

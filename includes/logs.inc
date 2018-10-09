@@ -17,7 +17,6 @@ function islandora_find_replace_operation_logs() {
   $header = array(
     t('ID'),
     t('Content Model'),
-    t('Object ID'),
     t('DSID'),
     t('Find'),
     t('Replace'),
@@ -27,22 +26,17 @@ function islandora_find_replace_operation_logs() {
   foreach ($operations as $operation) {
     $objectIDs = '';
     $revisions = unserialize($operation->revisions);
-    if (is_array($revisions) || is_object($revisions)){
-      foreach($revisions['success'] as $key => $value){  
-        $objectIDs = $objectIDs .' <p> ' . $key . '</p>';
-      }
-    }
+
     $rows[] = array(
       l($operation->id, 'admin/islandora/tools/find-replace/log/' . $operation->id),
       check_plain($operation->cmodel),
-      $objectIDs,
       check_plain($operation->dsid),
       check_plain($operation->find),
       check_plain($operation->replacement),
       check_plain($operation->isregex) == 1 ? 'YES' : 'NO',
     );
   }
-  
+
   return array(
     '#type' => 'markup',
     '#markup' => theme('table', array('header' => $header, 'rows' => $rows)),
@@ -71,15 +65,15 @@ function generate_csv(){
   // Add a header row
   fputs($fh, $bom =( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
   fputcsv($fh, array('ID','Content Model','Object ID','DSID','Find','Replace'));
- 
+
   foreach($operations as $operation) {
     $objectID = '';
     $revisions = unserialize($operation->revisions);
     if (is_array($revisions) || is_object($revisions)){
-     
+
       $numOfItem = count($revisions['success']);
       //$counter = 0;
-      foreach($revisions['success'] as $key => $value){ 
+      foreach($revisions['success'] as $key => $value){
         /*$objectIDs = $objectIDs . $key;
         if($counter < $numOfItem - 1){
           $objectIDs = $objectIDs."\r\n";
@@ -96,7 +90,7 @@ function generate_csv(){
         ));
       }
     }
-    
+
   }
   // Close the output stream.
   fclose($fh);

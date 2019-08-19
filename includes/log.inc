@@ -36,12 +36,22 @@ function islandora_find_replace_operation_log($find_replace) {
   $success_rows = array();
   foreach ($revisions['success'] as $pid => $info) {
     $object = islandora_object_load($pid);
-    $success_rows[$pid] = array(
-      l($object->label, 'islandora/object/' . $object->id,
-        array('attributes' => array('target' => '_blank'))),
-      l($dsid, 'islandora/object/' . $object->id . '/datastream/' . $dsid . '/version',
-        array('attributes' => array('target' => '_blank'))),
-    );
+    if ($object) {
+      $success_rows[$pid] = array(
+        l($object->label, 'islandora/object/' . $object->id,
+          array('attributes' => array('target' => '_blank'))),
+        l($dsid, 'islandora/object/' . $object->id . '/datastream/' . $dsid . '/version',
+          array('attributes' => array('target' => '_blank'))),
+      );
+    }
+    else {
+      $orig = $info['before'];
+      $after = $info['after'];
+      $success_rows[$pid] = array(
+        "Object $pid Deleted." ,
+        "Datastream $dsid not available. Before version: $orig to after version: $after, files not available."
+      );
+    }
     if ($diff_exists) {
       try {
         $history = $object->repository->api->m->getDatastreamHistory($object->id, $dsid);

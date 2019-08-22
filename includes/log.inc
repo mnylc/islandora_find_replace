@@ -38,7 +38,7 @@ function islandora_find_replace_operation_log($find_replace) {
   foreach ($revisions['success'] as $pid => $info) {
     $object = islandora_object_load($pid);
     $success_rows[$pid] = array(
-      $pid,
+      t($pid),
       l($object->label, 'islandora/object/' . $object->id,
         array('attributes' => array('target' => '_blank'))),
       l($dsid, 'islandora/object/' . $object->id . '/datastream/' . $dsid . '/version',
@@ -70,6 +70,7 @@ function islandora_find_replace_operation_log($find_replace) {
   if (isset($revisions['fail']) && count($revisions['fail'])) {
     $fail_output = t('<h2>Failed Replacements</h2>');
     $fail_header = array(
+      t('PID'),
       t('Label'),
       t('Datastream Versions'),
     );
@@ -77,6 +78,7 @@ function islandora_find_replace_operation_log($find_replace) {
     foreach ($revisions['fail'] as $fail_pid) {
       $object = islandora_object_load($fail_pid);
       $fail_rows[$fail_pid] = array(
+        t($pid),
         l($object->label, 'islandora/object/' . $object->id,
           array('attributes' => array('target' => '_blank'))),
         l($dsid, 'islandora/object/' . $object->id . '/datastream/' . $dsid . '/version',

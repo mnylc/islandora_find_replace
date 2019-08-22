@@ -26,6 +26,7 @@ function islandora_find_replace_operation_log($find_replace) {
 
   $diff_exists = module_exists('islandora_pretty_text_diff');
   $success_header = array(
+    t('PID'),
     t('Label'),
     t('Datastream Versions'),
   );
@@ -37,6 +38,7 @@ function islandora_find_replace_operation_log($find_replace) {
   foreach ($revisions['success'] as $pid => $info) {
     $object = islandora_object_load($pid);
     $success_rows[$pid] = array(
+      $pid,
       l($object->label, 'islandora/object/' . $object->id,
         array('attributes' => array('target' => '_blank'))),
       l($dsid, 'islandora/object/' . $object->id . '/datastream/' . $dsid . '/version',

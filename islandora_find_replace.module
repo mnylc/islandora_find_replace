@@ -230,18 +230,41 @@ function islandora_find_replace_update_objects($pid, $dsid, $search, $replace, $
       else {
         $content = islandora_find_replace_string_replace($search, $replace, $object[$dsid]->content);
       }
-      $object[$dsid]->setContentFromString($content);
 
-      $location_after = $object[$dsid]->location;
-      // If successful, track the version.
-      if ($location_before != $location_after) {
-        $success = TRUE;
+      // First pass here: if $content ==  $object[$dsid]->content then why do we even bother on adding a version?
+      // Second. Make sure the output, if mime is XML complaint, is a valid XML.
+      if ((trim($content) != trim($object[$dsid]->content)) && !empty(trim($content))) {
+        $valid_format = TRUE;
+        if ($object[$dsid]->mimetype == 'application/xml' || 'text/xml' || 'text/html') {
+          $valid_format = islandora_find_replace_isxml($content);
+        }
+        if ($valid_format) {
+          $object[$dsid]->setContentFromString($content);
+          $location_after = $object[$dsid]->location;
+          // If successful, track the version.
+          if ($location_before != $location_after) {
+            $success = TRUE;
+          }
+        }
+        else {
+         // XML resulting in this is invalid. Let's  report
+          $parms = array('@submissionid' => $id,'@pid' => $pid, '@replace' => $replace, '@search' => $search, '@dsid' => $dsid);
+          $msg = t('XML output resulting of the find and replace operation of submission id @submissionid for PID @pid when generating datastreams for Object with PID @pid and Datastream ID @dsid is invalid. Cancelling the whole batch.', $parms);
+          watchdog('islandora_find_replace', $msg, array( ),WATCHDOG_ERROR);
+          // This should stop any futher operation to from happening.
+          $context['finished'] = 1;
+          drupal_set_message(t('Find and Replaced Batch was suspended because one replace operation leads to a no valid XML. Please check your logs and or/replace your search & replacement patterns.'));
+        }
+      }
+      else {
+        $success = NULL;
       }
     }
     catch (Exception $e) {
-
+      watchdog('islandora_find_replace', 'An exception ocurred during find and replace with submission id @submissionid for Object with PID @pid and Datastream ID @dsid ', array('@submissionid' => $id, '@pid' => $pid, '@dsid' => $dsid),WATCHDOG_ERROR);
+      }
     }
-  }
+
 
   $find_replace = islandora_find_replace_load($id);
   $revisions = unserialize($find_replace['revisions']);
@@ -348,10 +371,6 @@ function islandora_find_replace_query($model, $collection = FALSE, $date_propert
     $condition .= 'fr:isMemberOfCollection <info:fedora/' . $collection . '> ; ';
   }
 
-  if ($namespace) {
-    $condition .= 'FILTER(REGEX(STR(?object), "^info:fedora/' . $namespace . ':"))';
-  }
-
   if ($date_property) {
     $from = _islandora_find_replace_timestamp_from_form_date($date_from);
     $to = _islandora_find_replace_timestamp_from_form_date($date_to, FALSE);
@@ -362,6 +381,11 @@ function islandora_find_replace_query($model, $collection = FALSE, $date_propert
     $condition .= $date_query . ' ?date
       FILTER ( ?date >= xsd:dateTime("' . $from . '") && ?date <= xsd:dateTime("' . $to . '"))';
   }
+
+  if ($namespace) {
+    $condition .= 'FILTER (REGEX( STR(?object), "^info:fedora/' . $namespace . ':", "i"))';
+  }
+
   $tuque = islandora_get_tuque_connection();
   $query = "PREFIX fm: <" . FEDORA_MODEL_URI . ">
             PREFIX fr: <" . FEDORA_RELS_EXT_URI . ">
@@ -391,8 +415,8 @@ function islandora_find_replace_query($model, $collection = FALSE, $date_propert
  * @param FedoraObject $object
  *   The Fedora object to preview the change for.
  *
- * @return array
- *   Rendered diff from the Islandora Pretty Text Diff module.
+ * @return array|boolean
+ *   Rendered diff from the Islandora Pretty Text Diff module or FALSE
  */
 function islandora_find_replace_preview($find_replace, $object) {
   if (module_exists('islandora_pretty_text_diff')) {
@@ -424,5 +448,17 @@ function islandora_find_replace_preview($find_replace, $object) {
   }
   else {
     drupal_set_message(t('Islandora Pretty Text Diff is required'), 'warning');
+    return FALSE;
+  }
+  return FALSE;
+}
+
+
+function islandora_find_replace_isxml($xml) {
+  $doc = @simplexml_load_string($xml);
+  if ($doc) {
+    return true; //valid
+  } else {
+    return false; //not valid
   }
 }

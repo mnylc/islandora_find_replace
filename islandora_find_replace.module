@@ -253,7 +253,7 @@ function islandora_find_replace_update_objects($pid, $dsid, $search, $replace, $
         else {
          // XML resulting in this is invalid. Let's  report
           $parms = array('@submissionid' => $id,'@pid' => $pid, '@replace' => $replace, '@search' => $search, '@dsid' => $dsid);
-          $msg = t('XML output resulting of the find and replace operation with id <a href="admin/islandora/tools/find-replace/log/@submissionid">@submissionid</a> for Object with PID @pid and Datastream @dsid is invalid. Cancelling the whole batch.', $parms);
+          $msg = t('XML output resulting of the find and replace operation with id <a href="/admin/islandora/tools/find-replace/log/@submissionid">@submissionid</a> for Object with PID @pid and Datastream @dsid is invalid. Cancelling the whole batch.', $parms);
           watchdog('islandora_find_replace', $msg, array( ),WATCHDOG_ERROR);
           // This should stop any futher operation to from happening.
           $context['finished'] = 1;
@@ -266,7 +266,7 @@ function islandora_find_replace_update_objects($pid, $dsid, $search, $replace, $
       }
     }
     catch (Exception $e) {
-      watchdog('islandora_find_replace', 'An exception ocurred during find and replace with submission id <a href="admin/islandora/tools/find-replace/log/@submissionid">@submissionid</a> for Object with PID @pid and Datastream ID @dsid ', array('@submissionid' => $id, '@pid' => $pid, '@dsid' => $dsid),WATCHDOG_ERROR);
+      watchdog('islandora_find_replace', 'An exception ocurred during find and replace with submission id <a href="/admin/islandora/tools/find-replace/log/@submissionid">@submissionid</a> for Object with PID @pid and Datastream ID @dsid ', array('@submissionid' => $id, '@pid' => $pid, '@dsid' => $dsid),WATCHDOG_ERROR);
       }
     }
 

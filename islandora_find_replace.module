@@ -219,8 +219,12 @@ function islandora_find_replace_update_objects($pid, $dsid, $search, $replace, $
   if (!isset($context['results']['submission_id'])) {
     $context['results']['submission_id'] = $id;
   }
-  $object = islandora_object_load($pid);
+  
   $success = FALSE;
+  if (!isset($context['results']['totalfailure'])) {
+    
+  $object = islandora_object_load($pid);
+ 
   if (isset($object[$dsid]) && islandora_datastream_access(ISLANDORA_METADATA_EDIT, $object[$dsid])) {
     try {
       $location_before = $object[$dsid]->location;
@@ -235,7 +239,7 @@ function islandora_find_replace_update_objects($pid, $dsid, $search, $replace, $
       // Second. Make sure the output, if mime is XML complaint, is a valid XML.
       if ((trim($content) != trim($object[$dsid]->content)) && !empty(trim($content))) {
         $valid_format = TRUE;
-        if ($object[$dsid]->mimetype == 'application/xml' || 'text/xml' || 'text/html') {
+        if (in_array($object[$dsid]->mimetype, array('application/xml','text/xml', 'text/html'))) {
           $valid_format = islandora_find_replace_isxml($content);
         }
         if ($valid_format) {
@@ -249,11 +253,12 @@ function islandora_find_replace_update_objects($pid, $dsid, $search, $replace, $
         else {
          // XML resulting in this is invalid. Let's  report
           $parms = array('@submissionid' => $id,'@pid' => $pid, '@replace' => $replace, '@search' => $search, '@dsid' => $dsid);
-          $msg = t('XML output resulting of the find and replace operation of submission id @submissionid for PID @pid when generating datastreams for Object with PID @pid and Datastream ID @dsid is invalid. Cancelling the whole batch.', $parms);
+          $msg = t('XML output resulting of the find and replace operation with id @submissionid for Object with PID @pid and Datastream @dsid is invalid. Cancelling the whole batch.', $parms);
           watchdog('islandora_find_replace', $msg, array( ),WATCHDOG_ERROR);
           // This should stop any futher operation to from happening.
           $context['finished'] = 1;
-          drupal_set_message(t('Find and Replaced Batch was suspended because one replace operation leads to a no valid XML. Please check your logs and or/replace your search & replacement patterns.'));
+          $context['results']['totalfailure'] = TRUE;
+          drupal_set_message(t('This find and Replaced Batch update was suspended because one replace operation leads to an invalid XML. Please check your logs and or/replace your search & replacement patterns.'));
         }
       }
       else {
@@ -265,7 +270,7 @@ function islandora_find_replace_update_objects($pid, $dsid, $search, $replace, $
       }
     }
 
-
+  }
   $find_replace = islandora_find_replace_load($id);
   $revisions = unserialize($find_replace['revisions']);
 

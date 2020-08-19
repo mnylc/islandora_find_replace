@@ -254,11 +254,11 @@ function islandora_find_replace_update_objects($pid, $dsid, $search, $replace, $
          // XML resulting in this is invalid. Let's  report
           $parms = array('@submissionid' => $id,'@pid' => $pid, '@replace' => $replace, '@search' => $search, '@dsid' => $dsid);
           $msg = t('XML output resulting of the find and replace operation with id <a href="/admin/islandora/tools/find-replace/log/@submissionid">@submissionid</a> for Object with PID @pid and Datastream @dsid is invalid. Cancelling the whole batch.', $parms);
-          watchdog('islandora_find_replace', $msg, array( ),WATCHDOG_ERROR);
+          watchdog('islandora_find_replace', $msg, array( ), WATCHDOG_ERROR);
           // This should stop any futher operation to from happening.
           $context['finished'] = 1;
           $context['results']['totalfailure'] = TRUE;
-          drupal_set_message(t('This find and Replaced Batch update was suspended because one replace operation leads to an invalid XML. Please check your logs and or/replace your search & replacement patterns.'));
+          drupal_set_message(t('This find and Replaced Batch update was suspended because one replace operation leads to an invalid XML. Please check your logs and or/replace your search & replacement patterns.'),'warning');
         }
       }
       else {
@@ -266,7 +266,7 @@ function islandora_find_replace_update_objects($pid, $dsid, $search, $replace, $
       }
     }
     catch (Exception $e) {
-      watchdog('islandora_find_replace', 'An exception ocurred during find and replace with submission id <a href="/admin/islandora/tools/find-replace/log/@submissionid">@submissionid</a> for Object with PID @pid and Datastream ID @dsid ', array('@submissionid' => $id, '@pid' => $pid, '@dsid' => $dsid),WATCHDOG_ERROR);
+      watchdog('islandora_find_replace', 'An exception ocurred during find and replace with submission id <a href="/admin/islandora/tools/find-replace/log/@submissionid">@submissionid</a> for Object with PID @pid and Datastream ID @dsid ', array('@submissionid' => $id, '@pid' => $pid, '@dsid' => $dsid), WATCHDOG_ERROR);
       }
     }
 
@@ -307,7 +307,10 @@ function islandora_find_replace_update_complete($success, $results, $operations)
     ->fields(array('state' => 'complete'))
     ->condition('id', $results['submission_id'])
     ->execute();
-  drupal_set_message(t('Find and Replace complete!'));
+  
+  if (!isset($results['totalfailure'])) { 
+    drupal_set_message(t('Find and Replace Batch Operations complete.'));
+  }
 }
 
 /**
@@ -405,6 +408,7 @@ function islandora_find_replace_query($model, $collection = FALSE, $date_propert
               }
            }";
   $results = array();
+
   $query_results = $tuque->repository->ri->sparqlQuery($query, 'unlimited');
   foreach ($query_results as $result) {
     $results[] = array('label' => $result['label']['value'], 'object' => $result['object']['value']);

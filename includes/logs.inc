@@ -27,9 +27,11 @@ function islandora_find_replace_operation_logs() {
   foreach ($operations as $operation) {
     $objectIDs = '';
     $revisions = unserialize($operation->revisions);
-    if (is_array($revisions) || is_object($revisions)){
-      foreach($revisions['success'] as $key => $value){  
-        $objectIDs = $objectIDs .' <p> ' . $key . '</p>';
+    if (is_array($revisions) || is_object($revisions)) {
+      if (isset($revisions['success'])) {
+        foreach($revisions['success'] as $key => $value){  
+          $objectIDs = $objectIDs .' <p> ' . $key . '</p>';
+        }
       }
     }
     $rows[] = array(

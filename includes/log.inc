@@ -34,32 +34,44 @@ function islandora_find_replace_operation_log($find_replace) {
   }
 
   $success_rows = array();
-  foreach ($revisions['success'] as $pid => $info) {
-    $object = islandora_object_load($pid);
-    $success_rows[$pid] = array(
-      l($object->label, 'islandora/object/' . $object->id,
-        array('attributes' => array('target' => '_blank'))),
-      l($dsid, 'islandora/object/' . $object->id . '/datastream/' . $dsid . '/version',
-        array('attributes' => array('target' => '_blank'))),
-    );
-    if ($diff_exists) {
-      try {
-        $history = $object->repository->api->m->getDatastreamHistory($object->id, $dsid);
-        $before_version = islandora_find_replace_get_version_id($history, $info['before']);
-        $after_version = islandora_find_replace_get_version_id($history, $info['after']);
-        if (!is_null($before_version) && !is_null($after_version)) {
-          $success_rows[$pid][] = l(
+  if (isset($revisions['success'])) {
+    foreach ($revisions['success'] as $pid => $info) {
+      $object = islandora_object_load($pid);
+      if ($object) {
+        $success_rows[$pid] = array(
+          l($object->label, 'islandora/object/' . $object->id,
+          array('attributes' => array('target' => '_blank'))),
+          l($dsid, 'islandora/object/' . $object->id . '/datastream/' . $dsid . '/version',
+          array('attributes' => array('target' => '_blank'))),
+        );
+      }
+      else {
+        $orig = $info['before'];
+        $after = $info['after'];
+        $success_rows[$pid] = array(
+          "Object $pid Deleted." ,
+          "Datastream $dsid not available. Before version: $orig to after version: $after, files not available."
+        );
+      }
+      if ($diff_exists) {
+        try {
+          $history = $object->repository->api->m->getDatastreamHistory($object->id, $dsid);
+          $before_version = islandora_find_replace_get_version_id($history, $info['before']);
+          $after_version = islandora_find_replace_get_version_id($history, $info['after']);
+          if (!is_null($before_version) && !is_null($after_version)) {
+            $success_rows[$pid][] = l(
             t('View Diff'),
             "islandora/object/{$object->id}/datastream/{$dsid}/diff/{$before_version}/{$after_version}",
             array('attributes' => array('target' => '_blank'))
-          );
+            );
+          }
+          else {
+            $success_rows[$pid][] = t('Not available');
+          }
         }
-        else {
+        catch (Exception $e) {
           $success_rows[$pid][] = t('Not available');
         }
-      }
-      catch (Exception $e) {
-        $success_rows[$pid][] = t('Not available');
       }
     }
   }

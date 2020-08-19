@@ -31,6 +31,8 @@ function islandora_find_replace_replace_form($form, &$form_state, $find_replace)
 
   foreach (unserialize($find_replace['find_results']) as $option) {
     $options[$option['object']] = array(
+      'pid' => l($option['object'], 'islandora/object/' . $option['object'],
+        array('attributes' => array('target' => '_blank'))),
       'label' => l($option['label'], 'islandora/object/' . $option['object'],
         array('attributes' => array('target' => '_blank'))),
       'datastream' => l($dsid,
@@ -47,6 +49,7 @@ function islandora_find_replace_replace_form($form, &$form_state, $find_replace)
   }
 
   $header = array(
+    'pid' => t('PID'),
     'label' => t('Label'),
     'datastream' => t('Current Datastream content'),
     'count' => t('Number of occurrences'),
@@ -94,6 +97,7 @@ function islandora_find_replace_replace_form_submit($form, &$form_state) {
       $form_state['storage']['find_replace']['dsid'],
       $form_state['storage']['find_replace']['find'],
       $form_state['storage']['find_replace']['replacement'],
+      $form_state['storage']['find_replace']['isregex'],
       $form_state['storage']['find_replace']['id']),
     );
   }
